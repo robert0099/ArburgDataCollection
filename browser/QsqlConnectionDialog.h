@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2018 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing/
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the examples of the Qt OPC UA module.
+** This file is part of the demonstration applications of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:BSD$
 ** Commercial License Usage
@@ -48,62 +48,43 @@
 **
 ****************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef QSQLCONNECTIONDIALOG_H
+#define QSQLCONNECTIONDIALOG_H
 
-#include <QMainWindow>
-#include <QOpcUaClient>
+#include <QDialog>
+#include <QMessageBox>
+#include <QStatusBar>
 
-QT_BEGIN_NAMESPACE
+#include "ui_QsqlConnectionDialog.h"
 
-class QOpcUaProvider;
-class OpcUaModel;
-
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow
+class QSqlConnectionDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit MainWindow(const QString &initialUrl, QWidget *parent = nullptr);
-    ~MainWindow();
-    Q_INVOKABLE void log(const QString &text, const QString &context, const QColor &color);
-    void log(const QString &text, const QColor &color = Qt::black);
+    QSqlConnectionDialog(QWidget *parent = nullptr);
+    ~QSqlConnectionDialog();
+
+    QString driverName() const;
+    QString databaseName() const;
+    QString userName() const;
+    QString password() const;
+    QString hostName() const;
+    int port() const;
+    bool useInMemoryDatabase() const;
+
+    void setStatusBarMsg(const QString& msg);
+
+    void setDefaultParams(const QString& driver, const QString& dbs, const QString& user, const QString& password, const QString& host);
 
 private slots:
-    void connectToServer();
-    void findServers();
-    void findServersComplete(const QVector<QOpcUaApplicationDescription> &servers, QOpcUa::UaStatusCode statusCode);
-    void getEndpoints();
-    void getEndpointsComplete(const QVector<QOpcUaEndpointDescription> &endpoints, QOpcUa::UaStatusCode statusCode);
-    void clientConnected();
-    void clientDisconnected();
-    void namespacesArrayUpdated(const QStringList &namespaceArray);
-    void clientError(QOpcUaClient::ClientError);
-    void clientState(QOpcUaClient::ClientState);
-    void showErrorDialog(QOpcUaErrorState *errorState);
+    void on_okButton_clicked();
+    void on_cancelButton_clicked() { reject(); }
+    void on_dbCheckBox_clicked() { ui.connGroupBox->setEnabled(!ui.dbCheckBox->isChecked()); }
 
 private:
-    void createClient();
-    void updateUiState();
-    void setupPkiConfiguration();
-    bool createPkiFolders();
-    bool createPkiPath(const QString &path);
+    Ui::QSqlConnectionDialogUi  ui;
+    QStatusBar*                 m_statusBar;
 
-private:
-    Ui::MainWindow *ui;
-    OpcUaModel *mOpcUaModel;
-    QOpcUaProvider *mOpcUaProvider;
-    QOpcUaClient *mOpcUaClient = nullptr;
-    QVector<QOpcUaEndpointDescription> mEndpointList;
-    bool mClientConnected = false;
-    QOpcUaApplicationIdentity m_identity;
-    QOpcUaPkiConfiguration m_pkiConfig;
-    QOpcUaEndpointDescription m_endpoint; // current endpoint used to connect
 };
 
-QT_END_NAMESPACE
-
-#endif // MAINWINDOW_H
+#endif

@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2018 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing/
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the examples of the Qt OPC UA module.
+** This file is part of the demonstration applications of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:BSD$
 ** Commercial License Usage
@@ -48,79 +48,41 @@
 **
 ****************************************************************************/
 
-#ifndef TREEITEM_H
-#define TREEITEM_H
+#ifndef CONNECTIONWIDGET_H
+#define CONNECTIONWIDGET_H
 
-#include <QObject>
-#include <QOpcUaNode>
-#include <memory>
+#include <QWidget>
 
-QT_BEGIN_NAMESPACE
+QT_FORWARD_DECLARE_CLASS(QTreeWidget)
+QT_FORWARD_DECLARE_CLASS(QTreeWidgetItem)
+QT_FORWARD_DECLARE_CLASS(QSqlDatabase)
+QT_FORWARD_DECLARE_CLASS(QMenu)
 
-class OpcUaModel;
-class QOpcUaRange;
-class QOpcUaEUInformation;
-
-class TreeItem : public QObject
+class ConnectionWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit TreeItem(OpcUaModel *model);
-    TreeItem(QOpcUaNode *node, OpcUaModel *model, TreeItem *parent);
-    TreeItem(QOpcUaNode *node, OpcUaModel *model, const QOpcUaReferenceDescription &browsingData, TreeItem *parent);
-    ~TreeItem();
-    TreeItem *child(int row);
-    int childIndex(const TreeItem *child) const;
-    int childCount();
-    int columnCount() const;
-    QVariant data(int column);
-    int row() const;
-    TreeItem *parentItem();
-    void appendChild(TreeItem *child);
-    QPixmap icon(int column) const;
-    bool hasChildNodeItem(const QString &nodeId) const;
+    ConnectionWidget(QWidget *parent = nullptr);
+    virtual ~ConnectionWidget();
 
-private slots:
-    void startBrowsing();
-    void handleAttributes(QOpcUa::NodeAttributes attr);
-    void browseFinished(const  QVector<QOpcUaReferenceDescription> &children, QOpcUa::UaStatusCode statusCode);
+    QSqlDatabase currentDatabase() const;
+
+signals:
+    void tableActivated(const QString &table);
+    void metaDataRequested(const QString &tableName);
+
+public slots:
+    void refresh();
+    void showMetaData();
+    void on_tree_itemActivated(QTreeWidgetItem *item, int column);
+    void on_tree_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
 
 private:
-    QString variantToString(const QVariant &value, const QString &typeNodeId = QString()) const;
-    QString localizedTextToString(const QOpcUaLocalizedText &text) const;
-    QString rangeToString(const QOpcUaRange &range) const;
-    QString euInformationToString(const QOpcUaEUInformation &info) const;
-    template <typename T>
-    QString numberArrayToString(const QVector<T> &vec) const;
+    void setActive(QTreeWidgetItem *);
 
-    std::unique_ptr<QOpcUaNode> mOpcNode;
-    OpcUaModel *mModel = nullptr;
-    bool mAttributesReady = false;
-    bool mBrowseStarted = false;
-    QList<TreeItem *> mChildItems;
-    QSet<QString> mChildNodeIds;
-    TreeItem *mParentItem = nullptr;
-
-private:
-    QString mNodeBrowseName;
-    QString mNodeId;
-    QString mNodeDisplayName;
-    QOpcUa::NodeClass mNodeClass = QOpcUa::NodeClass::Undefined;
+    QTreeWidget *tree;
+    QAction *metaDataAction;
+    QString activeDb;
 };
 
-template <typename T>
-QString TreeItem::numberArrayToString(const QVector<T> &vec) const
-{
-    QString list(QLatin1Char('['));
-    for (int i = 0, size = vec.size(); i < size; ++i) {
-        if (i)
-            list.append(QLatin1Char(';'));
-        list.append(QString::number(vec.at(i)));
-    }
-    list.append(QLatin1Char(']'));
-    return list;
-}
-
-QT_END_NAMESPACE
-
-#endif // TREEITEM_H
+#endif
